@@ -250,6 +250,7 @@ class FixedWidthData(core.BaseData):
 
         widths = [col.width for col in self.cols]
 
+        row_sep = ''
         if self.header.position_line is not None:
             char = self.header.position_char
             if len(char) != 1:
@@ -264,18 +265,19 @@ class FixedWidthData(core.BaseData):
             vals = [char * col.width for col in self.cols]
             row_sep = row_splitter.join(vals, widths)
 
-        if self.splitter.bookend:
+        if row_sep and self.splitter.bookend:
             lines.append(row_sep)
         
         if self.header.start_line is not None:
             lines.append(self.splitter.join([col.name for col in self.cols], widths))
 
-        lines.append(row_sep)
+        if row_sep:
+           lines.append(row_sep)
         
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
 
-        if self.splitter.bookend:
+        if row_sep and self.splitter.bookend:
             lines.append(row_sep)
 
         return lines
