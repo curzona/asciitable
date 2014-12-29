@@ -250,18 +250,33 @@ class FixedWidthData(core.BaseData):
 
         widths = [col.width for col in self.cols]
 
-        if self.header.start_line is not None:
-            lines.append(self.splitter.join([col.name for col in self.cols], widths))
-
         if self.header.position_line is not None:
             char = self.header.position_char
             if len(char) != 1:
                 raise ValueError('Position_char="%s" must be a single character' % char)
-            vals = [char * col.width for col in self.cols]
-            lines.append(self.splitter.join(vals, widths))
 
+            # Row splits are different from column splits
+            row_splitter = self.__class__.splitter_class()
+            row_splitter.delimiter = '+'
+            row_splitter.delimiter_pad = self.splitter.delimiter_pad
+            row_splitter.bookend = self.splitter.bookend
+
+            vals = [char * col.width for col in self.cols]
+            row_sep = row_splitter.join(vals, widths)
+
+        if self.splitter.bookend:
+            lines.append(row_sep)
+        
+        if self.header.start_line is not None:
+            lines.append(self.splitter.join([col.name for col in self.cols], widths))
+
+        lines.append(row_sep)
+        
         for vals in vals_list:
             lines.append(self.splitter.join(vals, widths))
+
+        if self.splitter.bookend:
+            lines.append(row_sep)
 
         return lines
 
@@ -386,7 +401,7 @@ class FixedWidthTwoLine(FixedWidth):
         self.header.position_line = position_line
         self.header.position_char = position_char
         self.data.start_line = position_line + 1
-        self.header.splitter.delimiter = ' '
+        self.header.splitter.delimiter = '0'
         self.data.splitter.delimiter = ' '
 
         
